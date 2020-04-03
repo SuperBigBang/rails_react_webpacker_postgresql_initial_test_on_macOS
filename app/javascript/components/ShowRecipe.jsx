@@ -7,13 +7,13 @@ export default class ShowRecipe extends React.Component {
         this.state = {
             recipe: {ingredients: ""}
         };
-        this.addHtmlEntities = this.addHtmlEntities.bind(this)
+        this.addHtmlEntities = this.addHtmlEntities.bind(this);
     }
 
     componentDidMount() {
         const {match: {params: {id}}} = this.props;
 
-        const url = `/api/v1/recipes/show/${id}`;
+        const url = `/api/v1/recipes/${id}`;
 
         fetch(url)
             .then(response => {
@@ -26,6 +26,32 @@ export default class ShowRecipe extends React.Component {
             .catch(() => this.props.history.push("/recipes"))
     }
 
+    deleteRecipe = () => {
+        const {
+            match: {
+                params: {id}
+            }
+        } = this.props;
+        const url = `/api/v1/recipes/${id}`;
+        const token = document.querySelector('meta[name="csrf-token"]').content;
+
+        fetch(url, {
+            method: "DELETE",
+            headers: {
+                "X-CSRF-Token": token,
+                "Content-Type": "application/json"
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error("Network response was not ok.");
+            })
+            .then(() => this.props.history.push("/recipes"))
+            .catch(error => console.log(error.message));
+    }
+
     addHtmlEntities(str) {
         return String(str)
             .replace(/&lt;/g, "<")
@@ -33,7 +59,7 @@ export default class ShowRecipe extends React.Component {
     }
 
     render() {
-        const { recipe } = this.state;
+        const {recipe} = this.state;
         let ingredientList = "No ingredients available";
 
         if (recipe.ingredients.length > 0) {
@@ -55,7 +81,7 @@ export default class ShowRecipe extends React.Component {
                         alt={`${recipe.name} image`}
                         className="img-fluid position-absolute"
                     />
-                    <div className="overlay bg-dark position-absolute" />
+                    <div className="overlay bg-dark position-absolute"/>
                     <h1 className="display-4 position-relative text-white">
                         {recipe.name}
                     </h1>
@@ -77,7 +103,7 @@ export default class ShowRecipe extends React.Component {
                             />
                         </div>
                         <div className="col-sm-12 col-lg-2">
-                            <button type="button" className="btn btn-danger">
+                            <button type="button" className="btn btn-danger" onClick={this.deleteRecipe}>
                                 Delete Recipe
                             </button>
                         </div>
